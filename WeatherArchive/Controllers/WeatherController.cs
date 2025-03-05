@@ -4,22 +4,14 @@ using WeatherArchive.Models;
 
 namespace WeatherArchive.Controllers;
 
-public class HomeController : Controller
+public class WeatherController : Controller
 {
-    private readonly ILogger<HomeController> _logger;
-
-    public HomeController(ILogger<HomeController> logger)
-    {
-        _logger = logger;
-    }
-
     public IActionResult Index()
     {
         return View();
     }
-
-    public IActionResult Privacy()
-    {
+    
+    public IActionResult Upload() {
         return View();
     }
 

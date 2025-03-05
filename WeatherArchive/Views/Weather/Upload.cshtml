@@ -1,0 +1,17 @@
+@{
+    ViewBag.Title = "Upload Page";
+    Layout = "_Layout";
+}
+
+<form action="/Weather/UploadHandle"
+      enctype="multipart/form-data"
+      method="post">
+    <input class="btn no-animation"
+           multiple
+           name="files"
+           type="file"
+           value="Choose excel files"/>
+    <input class="btn btn-outline-primary"
+           type="submit"
+           value="Upload File">
+</form>
