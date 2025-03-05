@@ -15,6 +15,12 @@ public class WeatherController : Controller
     {
         return View();
     }
+    
+    [HttpPost] 
+    public async Task<IActionResult> UploadHandle(List<IFormFile> files)
+    {
+        throw new NotImplementedException();
+    }
 
     public IActionResult Display()
     {

@@ -36,19 +36,19 @@
             <div class="collapse d-sm-inline-flex justify-content-between navbar-collapse">
                 <ul class="flex-grow-1 navbar-nav">
                     <li class="nav-item">
-                        <a asp-action="Index"
+                        <a asp-action="Display"
                            asp-area=""
                            asp-controller="Weather"
                            class="nav-link text-dark">
-                            Home
+                            View
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a asp-action="Privacy"
+                        <a asp-action="Upload"
                            asp-area=""
                            asp-controller="Weather"
                            class="nav-link text-dark">
-                            Privacy
+                            Upload
                         </a>
                     </li>
                 </ul>
@@ -65,12 +65,7 @@
 
 <footer class="border-top footer text-muted">
     <div class="container">
-        &copy; 2025 - WeatherArchive -
-        <a asp-action="Privacy"
-           asp-area=""
-           asp-controller="Weather">
-            Privacy
-        </a>
+        &copy; 2025 - WeatherArchive
     </div>
 </footer>
 <script src="~/lib/jquery/dist/jquery.min.js"></script>
