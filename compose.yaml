@@ -1,0 +1,6 @@
+﻿services:
+  weatherarchive:
+    image: weatherarchive
+    build:
+      context: .
+      dockerfile: WeatherArchive/Dockerfile

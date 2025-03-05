@@ -1,0 +1,36 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WeatherArchive", "WeatherArchive\WeatherArchive.csproj", "{9185CB76-21AE-4758-8818-FD2A4BA5EF29}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{E222C4B7-289D-4F06-84D9-F7F964D59B1F}"
+	ProjectSection(SolutionItems) = preProject
+		compose.yaml = compose.yaml
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WeatherArchive.Domain", "..\WeatherArchive.Domain\WeatherArchive.Domain\WeatherArchive.Domain.csproj", "{6A670835-C70B-412C-8633-F3B5388D4FA7}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Domain", "Domain", "{0BEA3F01-AF8E-46AB-842A-18975AD992D9}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "DAL", "DAL", "{C447F4A5-7416-46BE-B891-A6EAED2A5ED1}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Service", "Service", "{C3E392EC-FCB7-43E6-9D3E-C83A42219292}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{9185CB76-21AE-4758-8818-FD2A4BA5EF29}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9185CB76-21AE-4758-8818-FD2A4BA5EF29}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9185CB76-21AE-4758-8818-FD2A4BA5EF29}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9185CB76-21AE-4758-8818-FD2A4BA5EF29}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6A670835-C70B-412C-8633-F3B5388D4FA7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6A670835-C70B-412C-8633-F3B5388D4FA7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6A670835-C70B-412C-8633-F3B5388D4FA7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6A670835-C70B-412C-8633-F3B5388D4FA7}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{6A670835-C70B-412C-8633-F3B5388D4FA7} = {0BEA3F01-AF8E-46AB-842A-18975AD992D9}
+	EndGlobalSection
+EndGlobal
