@@ -3,15 +3,28 @@
     Layout = "_Layout";
 }
 
-<form action="/Weather/UploadHandle"
+<form action="#"
+      id="uploadForm"
       enctype="multipart/form-data"
       method="post">
     <input class="btn no-animation"
+           id="filesInput"
            multiple
            name="files"
            type="file"
            value="Choose excel files"/>
-    <input class="btn btn-outline-primary"
-           type="submit"
-           value="Upload File">
+    <p id="errorMessage"
+       style="color: red; display: none;">
+        Invalid file type.
+        Please upload an Excel file (.xls or .xlsx).
+    </p>
+    <button class="btn btn-outline-primary"
+            id="uploadButton"
+            type="submit">
+        Upload files
+    </button>
 </form>
+
+@section Scripts {
+    <script src="~/js/upload.js"></script>
+}
