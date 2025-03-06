@@ -15,11 +15,28 @@ public class WeatherController : Controller
     {
         return View();
     }
-    
-    [HttpPost] 
+
+    [HttpPost]
     public async Task<IActionResult> UploadHandle(List<IFormFile> files)
     {
-        throw new NotImplementedException();
+        foreach (var file in files)
+        {
+            if (file.Length > 0 &&
+                (file.FileName.EndsWith("xsl") ||
+                 file.FileName.EndsWith("xlsx")))
+            {
+                var filepath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", Path.GetRandomFileName());
+                await using var filestream = new FileStream(filepath, FileMode.Create);
+                await file.CopyToAsync(filestream);
+            }
+            else
+            {
+                return BadRequest("File not supported");
+            }
+        }
+
+        // TODO:redirect to parse method and then remove files
+        return RedirectToAction("Upload");
     }
 
     public IActionResult Display()
