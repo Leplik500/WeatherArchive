@@ -3,25 +3,29 @@ using WeatherArchive.Domain.Entity;
 
 namespace WeatherArchive.DAL.Repositories;
 
-public class WeatherRepository : IBaseRepository<WeatherEntity>
+public class WeatherRepository(AppDbContext context) : IBaseRepository<WeatherEntity>
 {
     public async Task Create(WeatherEntity entity)
     {
-        throw new NotImplementedException();
+        await context.AddAsync(entity);
+        await context.SaveChangesAsync();
     }
 
     public IQueryable<WeatherEntity> GetAll()
     {
-        throw new NotImplementedException();
+        return context.WeatherEntities;
     }
 
     public async Task Delete(WeatherEntity entity)
     {
-        throw new NotImplementedException();
+        context.Remove(entity);
+        await context.SaveChangesAsync();
     }
 
-    public async Task Update(WeatherEntity entity)
+    public async Task<WeatherEntity> Update(WeatherEntity entity)
     {
-        throw new NotImplementedException();
+        context.WeatherEntities.Update(entity);
+        await context.SaveChangesAsync();
+        return entity;
     }
 }
