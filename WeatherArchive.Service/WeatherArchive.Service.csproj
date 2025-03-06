@@ -6,4 +6,9 @@
         <Nullable>enable</Nullable>
     </PropertyGroup>
 
+    <ItemGroup>
+        <ProjectReference Include="..\..\WeatherArchive.Domain\WeatherArchive.Domain\WeatherArchive.Domain.csproj"/>
+        <ProjectReference Include="..\WeatherArchive.DAL\WeatherArchive.DAL.csproj"/>
+    </ItemGroup>
+
 </Project>

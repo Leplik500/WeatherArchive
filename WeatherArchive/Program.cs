@@ -3,12 +3,15 @@ using WeatherArchive.DAL;
 using WeatherArchive.DAL.Interfaces;
 using WeatherArchive.DAL.Repositories;
 using WeatherArchive.Domain.Entity;
+using WeatherArchive.Service.Implementations;
+using WeatherArchive.Service.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 builder.Services.AddScoped<IBaseRepository<WeatherEntity>, WeatherRepository>();
+builder.Services.AddScoped<IWeatherService, WeatherService>();
 
 builder.Services.AddDbContext<AppDbContext>(
         options =>
