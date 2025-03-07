@@ -19,6 +19,9 @@ public class WeatherController : Controller
     [HttpPost]
     public async Task<IActionResult> UploadHandle(List<IFormFile> files)
     {
+        if (files.Count == 0)
+            return BadRequest(new {description = "No files was selected"});
+
         foreach (var file in files)
         {
             if (file.Length > 0 &&
@@ -31,7 +34,7 @@ public class WeatherController : Controller
             }
             else
             {
-                return BadRequest("File not supported");
+                return BadRequest(new {description = "File not supported"});
             }
         }
 

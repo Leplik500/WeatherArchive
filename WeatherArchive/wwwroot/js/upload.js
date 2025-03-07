@@ -9,10 +9,22 @@ $('#filesInput').on('change', function () {
             return
         }
     }
+})
+
+$("#uploadButton").on('click', function (event) {
+    event.preventDefault();
+    let files = $('#filesInput')[0].files;
+    if (files.length === 0) {
+        $('#errorMessage').css('display', 'block');
+        return
+    }
+    let formData = new FormData($("#uploadForm")[0]);
     $.ajax({
         url: "/UploadHandle",
         method: "POST",
-        data: $("#uploadForm").serialize(),
+        data: formData,
+        contentType: false,
+        processData: false,
         success: function (response) {
             alert("Files uploaded successfully");
             console.log(response)
