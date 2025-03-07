@@ -2,7 +2,8 @@ $('#filesInput').on('change', function () {
     let files = this.files;
     for (let i = 0; i < files.length; i++) {
         let file = files[i];
-        if (!file.name.endsWith('.xlsx') || !file.name.endsWith('.xls')) {
+        debugger
+        if (!file.name.endsWith('.xlsx') && !file.name.endsWith('.xls')) {
             this.value = "";
             $('#errorMessage').css('display', 'block');
             return
