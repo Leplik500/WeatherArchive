@@ -20,7 +20,7 @@ $("#uploadButton").on('click', function (event) {
     }
     let formData = new FormData($("#uploadForm")[0]);
     $.ajax({
-        url: "/UploadHandle",
+        url: "/MultipleUploadHandle",
         method: "POST",
         data: formData,
         contentType: false,

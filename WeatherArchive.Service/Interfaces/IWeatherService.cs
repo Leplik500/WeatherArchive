@@ -8,4 +8,5 @@ public interface IWeatherService
 {
     Task<IBaseResponse<WeatherEntity>> Create(CreateWeatherViewModel model);
     Task<IBaseResponse<IEnumerable<WeatherViewModel>>> GetAll();
+    Task<IBaseResponse<IEnumerable<WeatherEntity>>> CreateMultiple(IEnumerable<CreateWeatherViewModel> models);
 }

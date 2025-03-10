@@ -33,8 +33,9 @@ public class WeatherService(IBaseRepository<WeatherEntity> repository, ILogger<W
                 CloudHeight = model.CloudHeight,
                 DewPoint = model.DewPoint
             };
+
             await repository.Create(entity);
-            return new BaseResponse<WeatherEntity>()
+            return new BaseResponse<WeatherEntity>
             {
                 Description = $"Weather with {model.WeatherPhenomenon} and {model.Date} date was created",
                 StatusCode = StatusCode.OK
@@ -43,13 +44,12 @@ public class WeatherService(IBaseRepository<WeatherEntity> repository, ILogger<W
         catch (Exception e)
         {
             logger.LogError("[WeatherService.Create] {Message}", e.Message);
-            return new BaseResponse<WeatherEntity>()
+            return new BaseResponse<WeatherEntity>
             {
                 Description = e.Message,
                 StatusCode = StatusCode.InternalServerError
             };
         }
-        
     }
 
     public async Task<IBaseResponse<IEnumerable<WeatherViewModel>>> GetAll()
@@ -71,9 +71,10 @@ public class WeatherService(IBaseRepository<WeatherEntity> repository, ILogger<W
                         CloudCover = w.CloudCover,
                         CloudHeight = w.CloudHeight,
                         DewPoint = w.DewPoint
-                    }).ToListAsync();
+                    })
+                    .ToListAsync();
 
-            return new BaseResponse<IEnumerable<WeatherViewModel>>()
+            return new BaseResponse<IEnumerable<WeatherViewModel>>
             {
                 Data = weathers,
                 StatusCode = StatusCode.OK
@@ -82,11 +83,34 @@ public class WeatherService(IBaseRepository<WeatherEntity> repository, ILogger<W
         catch (Exception e)
         {
             logger.LogError("[WeatherService.GetAll] {Message}", e.Message);
-            return new BaseResponse<IEnumerable<WeatherViewModel>>()
+            return new BaseResponse<IEnumerable<WeatherViewModel>>
             {
                 Description = e.Message,
                 StatusCode = StatusCode.InternalServerError
             };
         }
+    }
+
+    public async Task<IBaseResponse<IEnumerable<WeatherEntity>>> CreateMultiple(IEnumerable<CreateWeatherViewModel> models)
+    {
+        var weatherEntities = new List<WeatherEntity>();
+        foreach (var weather in models)
+        {
+            var response = await Create(weather);
+            if (response.StatusCode != StatusCode.OK)
+                return new BaseResponse<IEnumerable<WeatherEntity>>
+                {
+                    Description = response.Description,
+                    StatusCode = StatusCode.InternalServerError
+                };
+
+            weatherEntities.Add(response.Data);
+        }
+
+        return new BaseResponse<IEnumerable<WeatherEntity>>
+        {
+            Data = weatherEntities,
+            StatusCode = StatusCode.OK
+        };
     }
 }

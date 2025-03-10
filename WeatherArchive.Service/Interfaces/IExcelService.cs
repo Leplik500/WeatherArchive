@@ -1,9 +1,9 @@
-using WeatherArchive.Domain.Entity;
 using WeatherArchive.Domain.Response;
+using WeatherArchive.Domain.ViewModels.Weather;
 
 namespace WeatherArchive.Service.Interfaces;
 
 public interface IExcelService
 {
-    Task<IBaseResponse<WeatherEntity>> ParseExcel(FileInfo fileInfo);
+    BaseResponse<IEnumerable<CreateWeatherViewModel>> ParseExcel(string filePath);
 }

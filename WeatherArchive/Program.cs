@@ -12,6 +12,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews();
 builder.Services.AddScoped<IBaseRepository<WeatherEntity>, WeatherRepository>();
 builder.Services.AddScoped<IWeatherService, WeatherService>();
+builder.Services.AddScoped<IExcelService, ExcelService>();
 
 builder.Services.AddDbContext<AppDbContext>(
         options =>
