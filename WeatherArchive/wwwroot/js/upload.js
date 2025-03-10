@@ -7,6 +7,8 @@ $('#filesInput').on('change', function () {
             this.value = "";
             $('#errorMessage').css('display', 'block');
             return
+        } else {
+            $('#errorMessage').css('display', 'none');
         }
     }
 })

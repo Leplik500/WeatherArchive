@@ -37,7 +37,9 @@ public partial class ExcelService(ILogger<ExcelService> logger) : IExcelService
 
                     var entity = ParseRow(row);
                     if (entity == null)
-                        throw new ArgumentException($"In row {row.RowNum} not all required fields are filled");
+                        throw new ArgumentException($"In row {row.RowNum} not all required fields are filled\n" +
+                                                    $"Required fieds are Date, Time, Temperature, Humidity, Dew Point, Pressure");
+                    
 
                     weathers.Add(entity);
                 }
