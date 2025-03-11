@@ -1,3 +1,5 @@
+using System.ComponentModel;
+using System.Globalization;
 using System.Text.RegularExpressions;
 using Microsoft.Extensions.Logging;
 using NPOI.HSSF.UserModel;
@@ -37,9 +39,8 @@ public partial class ExcelService(ILogger<ExcelService> logger) : IExcelService
 
                     var entity = ParseRow(row);
                     if (entity == null)
-                        throw new ArgumentException($"In row {row.RowNum} not all required fields are filled\n" +
+                        throw new ArgumentException($"In sheet {sheet.SheetName} in row {row.RowNum} not all required fields are filled\n" +
                                                     $"Required fieds are Date, Time, Temperature, Humidity, Dew Point, Pressure");
-                    
 
                     weathers.Add(entity);
                 }
@@ -66,61 +67,26 @@ public partial class ExcelService(ILogger<ExcelService> logger) : IExcelService
     {
         try
         {
-            //TODO: поэкспериментировать с GetCell и MissingCellPolicy, что оно будет возвращать в зависимости
-            // от разных значений MissingCellPolicy?
-            var date = row.GetCell(0).DateOnlyCellValue;
-            var time = row.GetCell(1).TimeOnlyCellValue;
-            if (date is null)
-                throw new ArgumentException($"Date on row {row.RowNum} is null");
+            var date = row.GetCell(0).StringCellValue;
+            var time = row.GetCell(1).StringCellValue;
+            var dateTime = ParseDateTime(date, time);
 
-            if (time is null)
-                throw new ArgumentException($"Time on row {row.RowNum} is null");
-
-            var dateTime = new DateTime((DateOnly) date, (TimeOnly) time, DateTimeKind.Local);
-            if (dateTime > DateTime.Now)
-                throw new ArgumentException($"Time on row {row.RowNum} is in the future");
-
-            if (dateTime < new DateTime(1900, 1, 1))
-                throw new ArgumentException($"Time on row {row.RowNum} is too old");
+            var temperature = GetDoubleFromCell(row.GetCell(2), "Temperature", -90, 60);
+            var humidity = GetDoubleFromCell(row.GetCell(3), "Humidity", 0, 100);
+            var dewPoint = GetDoubleFromCell(row.GetCell(4), "Dew Point", -60, 40);
+            var pressure = GetIntFromCell(row.GetCell(5), "Pressure", 630, 820);
 
             var windDirectionCell = row.GetCell(6);
             var windDirection = ParseWindDirection(windDirectionCell.StringCellValue);
 
-            var temperature = row.GetCell(2).NumericCellValue;
-            if (temperature is > 60 or < -90)
-                throw new ArgumentException($"Temperature on row {row.RowNum} is out of range [-90; 60]");
-
-            var humidity = row.GetCell(3).NumericCellValue;
-            if (humidity is > 100 or < 0)
-                throw new ArgumentException($"Humidity on row {row.RowNum} is out of range [0; 100]");
-
-            var dewPoint = row.GetCell(4).NumericCellValue;
-            if (dewPoint is > 40 or < -60)
-                throw new ArgumentException($"Dew point on row {row.RowNum} is out of range [-60; 40]");
-
-            var pressure = (int) row.GetCell(5).NumericCellValue;
-            if (pressure is > 820 or < 630)
-                throw new ArgumentException($"Pressure on row {row.RowNum} is out of range [820; 630]");
-
-            var windSpeed = (int) row.GetCell(7).NumericCellValue;
-            if (windSpeed is > 410 or < 0)
-                throw new ArgumentException($"Wind speed on row {row.RowNum} is out of range [0; 410]");
-
-            var cloudCover = (int) row.GetCell(8).NumericCellValue;
-            if (cloudCover is > 100 or < 0)
-                throw new ArgumentException($"Cloud cover on row {row.RowNum} is out of range [0; 100]");
-
-            var cloudHeight = (int) row.GetCell(9).NumericCellValue;
-            if (cloudHeight is > 3000 or < 0)
-                throw new ArgumentException($"Cloud height on row {row.RowNum} is out of range [0; 3000]");
-
-            var visibility = (int) row.GetCell(10).NumericCellValue;
-            if (visibility is > 200 or < 0)
-                throw new ArgumentException($"Visibility on row {row.RowNum} is out of range [0; 200]");
+            var windSpeed = GetNullableIntFromCell(row.GetCell(7), "Wind Speed", 0, 410);
+            var cloudCover = GetNullableIntFromCell(row.GetCell(8), "Cloud Cover", 0, 100);
+            var cloudHeight = GetNullableIntFromCell(row.GetCell(9), "Cloud Height", 0, 3000);
+            var visibility = GetIntFromCell(row.GetCell(10), "Visibility", 0, 200);
 
             var weatherPhenomenon = row.GetCell(11).StringCellValue;
             if (!WeatherPhenomenonRegex().IsMatch(weatherPhenomenon))
-                throw new ArgumentException($"Weather phenomenon on row {row.RowNum} is not valid");
+                throw new ArgumentException("Weather phenomenon is not valid");
 
             return new CreateWeatherViewModel
             {
@@ -139,14 +105,69 @@ public partial class ExcelService(ILogger<ExcelService> logger) : IExcelService
         }
         catch (Exception e)
         {
-            logger.LogError("[ExcelService.ParseRow] {Message}", e.Message);
+            logger.LogError("[ExcelService.ParseRow] row {RowNum} on sheet {SheetName}: {Message}", row.RowNum, row.Sheet.SheetName, e.Message);
             return null;
         }
     }
 
+    private static double GetDoubleFromCell(ICell cell, string name, int min, int max)
+    {
+        if (cell.CellType != CellType.Numeric)
+            throw new ArgumentException($"{name} is not numeric");
+
+        var value = cell.NumericCellValue;
+        if (value > max || value < min)
+            throw new ArgumentException($"{name} is out of range [{min}; {max}]");
+
+        return value;
+    }
+
+    private static int GetIntFromCell(ICell cell, string name, int min, int max)
+    {
+        if (cell.CellType != CellType.Numeric)
+            throw new ArgumentException($"{name} is not numeric");
+
+        var value = cell.NumericCellValue;
+        if (value > max || value < min)
+            throw new ArgumentException($"{name} is out of range [{min}; {max}]");
+
+        return (int) value;
+    }
+
+    private static int? GetNullableIntFromCell(ICell cell, string name, int min, int max)
+    {
+        int? value;
+        if (cell.CellType != CellType.Numeric)
+            value = null;
+        else
+            value = (int) cell.NumericCellValue;
+
+        if (value > max || value < min)
+            throw new ArgumentException($"{name} is out of range [{min}; {max}]");
+
+        return value;
+    }
+
+    private static DateTime ParseDateTime(string date, string time)
+    {
+        var dateTimeConverter = new DateTimeConverter();
+        var dateTimeString = date + " " + time;
+        var cultureInfo = new CultureInfo("ru-Ru");
+        var dateTime = (DateTime) (dateTimeConverter.ConvertFrom(null, cultureInfo, dateTimeString) ??
+                                   throw new ArgumentException("Date and time are not valid"));
+
+        if (dateTime > DateTime.Now)
+            throw new ArgumentException("Time is in the future");
+
+        if (dateTime < new DateTime(1900, 1, 1))
+            throw new ArgumentException("Time is too old");
+
+        return dateTime;
+    }
+
     private static WindDirection? ParseWindDirection(string? input)
     {
-        if (string.IsNullOrEmpty(input))
+        if (string.IsNullOrWhiteSpace(input))
             return null;
 
         var normalized = NormalizeInput(input);
