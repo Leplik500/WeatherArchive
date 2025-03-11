@@ -63,7 +63,7 @@ public partial class ExcelService(ILogger<ExcelService> logger) : IExcelService
         }
     }
 
-    private CreateWeatherViewModel? ParseRow(IRow row)
+    private CreateWeatherViewModel ParseRow(IRow row)
     {
         try
         {
@@ -79,13 +79,17 @@ public partial class ExcelService(ILogger<ExcelService> logger) : IExcelService
             var windDirectionCell = row.GetCell(6);
             var windDirection = ParseWindDirection(windDirectionCell.StringCellValue);
 
-            var windSpeed = GetNullableIntFromCell(row.GetCell(7), "Wind Speed", 0, 410);
-            var cloudCover = GetNullableIntFromCell(row.GetCell(8), "Cloud Cover", 0, 100);
-            var cloudHeight = GetNullableIntFromCell(row.GetCell(9), "Cloud Height", 0, 3000);
-            var visibility = GetIntFromCell(row.GetCell(10), "Visibility", 0, 200);
+            var cell = row.GetCell(7, MissingCellPolicy.CREATE_NULL_AS_BLANK);
+            var windSpeed = GetNullableIntFromCell(cell, "Wind Speed", 0, 410);
+            cell = row.GetCell(8, MissingCellPolicy.CREATE_NULL_AS_BLANK);
+            var cloudCover = GetNullableIntFromCell(cell, "Cloud Cover", 0, 100);
+            cell = row.GetCell(9, MissingCellPolicy.CREATE_NULL_AS_BLANK);
+            var cloudHeight = GetNullableIntFromCell(cell, "Cloud Height", 0, 3000);
+            cell = row.GetCell(10, MissingCellPolicy.CREATE_NULL_AS_BLANK);
+            var visibility = GetNullableIntFromCell(cell, "Visibility", 0, 200);
 
-            var weatherPhenomenon = row.GetCell(11).StringCellValue;
-            if (!WeatherPhenomenonRegex().IsMatch(weatherPhenomenon))
+            var weatherPhenomenon = row.GetCell(11, MissingCellPolicy.CREATE_NULL_AS_BLANK).StringCellValue;
+            if (!WeatherPhenomenonRegex().IsMatch(weatherPhenomenon) && !string.IsNullOrWhiteSpace(weatherPhenomenon))
                 throw new ArgumentException("Weather phenomenon is not valid");
 
             return new CreateWeatherViewModel
@@ -106,7 +110,7 @@ public partial class ExcelService(ILogger<ExcelService> logger) : IExcelService
         catch (Exception e)
         {
             logger.LogError("[ExcelService.ParseRow] row {RowNum} on sheet {SheetName}: {Message}", row.RowNum, row.Sheet.SheetName, e.Message);
-            return null;
+            throw new ArgumentException($"[ExcelService.ParseRow] row {row.RowNum} on sheet {row.Sheet.SheetName}: {e.Message}");
         }
     }
 
@@ -152,17 +156,20 @@ public partial class ExcelService(ILogger<ExcelService> logger) : IExcelService
     {
         var dateTimeConverter = new DateTimeConverter();
         var dateTimeString = date + " " + time;
-        var cultureInfo = new CultureInfo("ru-Ru");
-        var dateTime = (DateTime) (dateTimeConverter.ConvertFrom(null, cultureInfo, dateTimeString) ??
-                                   throw new ArgumentException("Date and time are not valid"));
+        var culture = new CultureInfo("ru-RU");
+        var moscowTime = (DateTime) (dateTimeConverter.ConvertFrom(null, culture, dateTimeString) ??
+                                     throw new ArgumentException("Date and time are not valid"));
 
-        if (dateTime > DateTime.Now)
+        var moscowZone = TimeZoneInfo.FindSystemTimeZoneById("Europe/Moscow");
+        var utcTime = TimeZoneInfo.ConvertTimeToUtc(moscowTime, moscowZone);
+
+        if (utcTime > DateTime.Now)
             throw new ArgumentException("Time is in the future");
 
-        if (dateTime < new DateTime(1900, 1, 1))
+        if (utcTime < new DateTime(1900, 1, 1))
             throw new ArgumentException("Time is too old");
 
-        return dateTime;
+        return utcTime;
     }
 
     private static WindDirection? ParseWindDirection(string? input)
@@ -217,6 +224,7 @@ public partial class ExcelService(ILogger<ExcelService> logger) : IExcelService
         }
     }
 
-    [GeneratedRegex(@"\b(?:град|позёмок|ливень|дождь|снег|дымка|морось|гроза|туман)\b", RegexOptions.IgnoreCase, "ru-RU")]
+    [GeneratedRegex(@"\b(?:град|позёмок|ливень|дождь|снег|дымка|морось|гроза|туман|небо|неба|радуга|северное сияние|облако|облака|облаков)\b",
+            RegexOptions.IgnoreCase, "ru-RU")]
     private static partial Regex WeatherPhenomenonRegex();
 }
