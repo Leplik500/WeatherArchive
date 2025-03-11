@@ -20,6 +20,7 @@ $("#uploadButton").on('click', function (event) {
         $('#errorMessage').css('display', 'block');
         return
     }
+    $('#waitMessage').css('display', 'block')
     let formData = new FormData($("#uploadForm")[0]);
     $.ajax({
         url: "/MultipleUploadHandle",
@@ -29,6 +30,7 @@ $("#uploadButton").on('click', function (event) {
         processData: false,
         success: function (response) {
             alert("Files uploaded successfully");
+            $('#waitMessage').css('display', 'none')
             console.log(response)
         },
         error: function (response) {
