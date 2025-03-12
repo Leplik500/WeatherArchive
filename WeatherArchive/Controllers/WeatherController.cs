@@ -61,7 +61,7 @@ public class WeatherController(IExcelService excelService, IWeatherService weath
         }
 
         if (isSuccesful)
-            return Ok(new {description = "All files loaded and parsed successfully"});
+            return Ok(new {description = "Все файлы успешно загружены и разобраны"});
 
         return BadRequest(new {description = resultDescriptions});
     }

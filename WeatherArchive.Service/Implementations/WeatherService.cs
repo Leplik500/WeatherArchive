@@ -37,7 +37,7 @@ public class WeatherService(IBaseRepository<WeatherEntity> repository, ILogger<W
             await repository.Create(entity);
             return new BaseResponse<WeatherEntity>
             {
-                Description = $"Weather with {model.WeatherPhenomenon} and {model.Date} date was created",
+                Description = $"Запись погоды с {model.WeatherPhenomenon} {model.Date} была создана",
                 StatusCode = StatusCode.OK
             };
         }

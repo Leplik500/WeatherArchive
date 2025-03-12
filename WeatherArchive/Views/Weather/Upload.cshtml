@@ -1,5 +1,5 @@
 @{
-    ViewBag.Title = "Upload Page";
+    ViewBag.Title = "Загрузка";
     Layout = "_Layout";
 }
 
@@ -15,17 +15,17 @@
            value="Choose excel files"/>
     <p id="errorMessage"
        style="color: red; display: none;">
-        Invalid file type.
-        Please upload an Excel file (.xls or .xlsx).
+        Неподдерживаемый формат файла.
+        Пожалуйста, загрузите файл Excel в формате (.xls или .xlsx).
     </p>
     <p id="waitMessage"
        style="color: blue; display: none;">
-        Please wait... Do some exercises
+        Пожалуйста, подождите, идет загрузка... А пока сделайте разминку
     </p>
     <button class="btn btn-outline-primary"
             id="uploadButton"
             type="submit">
-        Upload files
+        Загрузить
     </button>
 </form>
 

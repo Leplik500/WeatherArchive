@@ -29,12 +29,12 @@ $("#uploadButton").on('click', function (event) {
         contentType: false,
         processData: false,
         success: function (response) {
-            alert("Files uploaded successfully");
+            alert("Файлы успешно загружены и разобраны");
             $('#waitMessage').css('display', 'none')
             console.log(response)
         },
         error: function (response) {
-            alert("Files upload failed: " + response.responseJSON.description)
+            alert("Загрузка файлов провалилась: " + response.responseJSON.description)
             console.log(response)
         }
     })

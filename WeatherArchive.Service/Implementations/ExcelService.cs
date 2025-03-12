@@ -23,7 +23,7 @@ public partial class ExcelService(ILogger<ExcelService> logger) : IExcelService
             if (book == null)
                 return new BaseResponse<IEnumerable<CreateWeatherViewModel>>
                 {
-                    Description = "File not supported",
+                    Description = "Файл не поддерживается",
                     StatusCode = StatusCode.FileNotSupported
                 };
 
@@ -39,8 +39,7 @@ public partial class ExcelService(ILogger<ExcelService> logger) : IExcelService
 
                     var entity = ParseRow(row);
                     if (entity == null)
-                        throw new ArgumentException($"In sheet {sheet.SheetName} in row {row.RowNum} not all required fields are filled\n" +
-                                                    $"Required fieds are Date, Time, Temperature, Humidity, Dew Point, Pressure");
+                        throw new ArgumentException($"На листе {sheet.SheetName} в строке {row.RowNum} не заполнены все обязательные поля\nОбязательные поля: Дата, Время, Температура, Влажность, Точка росы, Давление");
 
                     weathers.Add(entity);
                 }
@@ -71,26 +70,26 @@ public partial class ExcelService(ILogger<ExcelService> logger) : IExcelService
             var time = row.GetCell(1).StringCellValue;
             var dateTime = ParseDateTime(date, time);
 
-            var temperature = GetDoubleFromCell(row.GetCell(2), "Temperature", -90, 60);
-            var humidity = GetDoubleFromCell(row.GetCell(3), "Humidity", 0, 100);
-            var dewPoint = GetDoubleFromCell(row.GetCell(4), "Dew Point", -60, 40);
-            var pressure = GetIntFromCell(row.GetCell(5), "Pressure", 630, 820);
+            var temperature = GetDoubleFromCell(row.GetCell(2), "Температура", -90, 60);
+            var humidity = GetDoubleFromCell(row.GetCell(3), "Влажность", 0, 100);
+            var dewPoint = GetDoubleFromCell(row.GetCell(4), "Точка росы", -60, 40);
+            var pressure = GetIntFromCell(row.GetCell(5), "Давление", 630, 820);
 
             var windDirectionCell = row.GetCell(6);
             var windDirection = ParseWindDirection(windDirectionCell.StringCellValue);
 
             var cell = row.GetCell(7, MissingCellPolicy.CREATE_NULL_AS_BLANK);
-            var windSpeed = GetNullableIntFromCell(cell, "Wind Speed", 0, 410);
+            var windSpeed = GetNullableIntFromCell(cell, "Скорость ветра", 0, 410);
             cell = row.GetCell(8, MissingCellPolicy.CREATE_NULL_AS_BLANK);
-            var cloudCover = GetNullableIntFromCell(cell, "Cloud Cover", 0, 100);
+            var cloudCover = GetNullableIntFromCell(cell, "Облачность", 0, 100);
             cell = row.GetCell(9, MissingCellPolicy.CREATE_NULL_AS_BLANK);
-            var cloudHeight = GetNullableIntFromCell(cell, "Cloud Height", 0, 3000);
+            var cloudHeight = GetNullableIntFromCell(cell, "Нижняя граница облачности", 0, 3000);
             cell = row.GetCell(10, MissingCellPolicy.CREATE_NULL_AS_BLANK);
-            var visibility = GetNullableIntFromCell(cell, "Visibility", 0, 200);
+            var visibility = GetNullableIntFromCell(cell, "Видимость", 0, 200);
 
             var weatherPhenomenon = row.GetCell(11, MissingCellPolicy.CREATE_NULL_AS_BLANK).StringCellValue;
             if (!WeatherPhenomenonRegex().IsMatch(weatherPhenomenon) && !string.IsNullOrWhiteSpace(weatherPhenomenon))
-                throw new ArgumentException("Weather phenomenon is not valid");
+                throw new ArgumentException("Погодное явление указано неверно");
 
             return new CreateWeatherViewModel
             {
@@ -109,19 +108,19 @@ public partial class ExcelService(ILogger<ExcelService> logger) : IExcelService
         }
         catch (Exception e)
         {
-            logger.LogError("[ExcelService.ParseRow] row {RowNum} on sheet {SheetName}: {Message}", row.RowNum, row.Sheet.SheetName, e.Message);
-            throw new ArgumentException($"[ExcelService.ParseRow] row {row.RowNum} on sheet {row.Sheet.SheetName}: {e.Message}");
+            logger.LogError("[ExcelService.ParseRow] строка {RowNum} на листе {SheetName}: {Сообщение}", row.RowNum, row.Sheet.SheetName, e.Message);
+            throw new ArgumentException($"[ExcelService.ParseRow] строка {row.RowNum} на листе {row.Sheet.SheetName}: {e.Message}");
         }
     }
 
     private static double GetDoubleFromCell(ICell cell, string name, int min, int max)
     {
         if (cell.CellType != CellType.Numeric)
-            throw new ArgumentException($"{name} is not numeric");
+            throw new ArgumentException($"{name} не является числовым значением");
 
         var value = cell.NumericCellValue;
         if (value > max || value < min)
-            throw new ArgumentException($"{name} is out of range [{min}; {max}]");
+            throw new ArgumentException($"{name} вне допустимого диапазона [{min}; {max}]");
 
         return value;
     }
@@ -129,13 +128,13 @@ public partial class ExcelService(ILogger<ExcelService> logger) : IExcelService
     private static int GetIntFromCell(ICell cell, string name, int min, int max)
     {
         if (cell.CellType != CellType.Numeric)
-            throw new ArgumentException($"{name} is not numeric");
+            throw new ArgumentException($"{name} не является числовым значением");
 
         var value = cell.NumericCellValue;
         if (value > max || value < min)
-            throw new ArgumentException($"{name} is out of range [{min}; {max}]");
+            throw new ArgumentException($"{name} вне допустимого диапазона [{min}; {max}]");
 
-        return (int) value;
+        return (int)value;
     }
 
     private static int? GetNullableIntFromCell(ICell cell, string name, int min, int max)
@@ -144,10 +143,10 @@ public partial class ExcelService(ILogger<ExcelService> logger) : IExcelService
         if (cell.CellType != CellType.Numeric)
             value = null;
         else
-            value = (int) cell.NumericCellValue;
+            value = (int)cell.NumericCellValue;
 
         if (value > max || value < min)
-            throw new ArgumentException($"{name} is out of range [{min}; {max}]");
+            throw new ArgumentException($"{name} вне допустимого диапазона [{min}; {max}]");
 
         return value;
     }
@@ -157,17 +156,17 @@ public partial class ExcelService(ILogger<ExcelService> logger) : IExcelService
         var dateTimeConverter = new DateTimeConverter();
         var dateTimeString = date + " " + time;
         var culture = new CultureInfo("ru-RU");
-        var moscowTime = (DateTime) (dateTimeConverter.ConvertFrom(null, culture, dateTimeString) ??
-                                     throw new ArgumentException("Date and time are not valid"));
+        var moscowTime = (DateTime)(dateTimeConverter.ConvertFrom(null, culture, dateTimeString) ??
+                                     throw new ArgumentException("Дата и время указаны неверно"));
 
         var moscowZone = TimeZoneInfo.FindSystemTimeZoneById("Europe/Moscow");
         var utcTime = TimeZoneInfo.ConvertTimeToUtc(moscowTime, moscowZone);
 
         if (utcTime > DateTime.Now)
-            throw new ArgumentException("Time is in the future");
+            throw new ArgumentException("Время задано в будущем");
 
         if (utcTime < new DateTime(1900, 1, 1))
-            throw new ArgumentException("Time is too old");
+            throw new ArgumentException("Время слишком давнее");
 
         return utcTime;
     }
@@ -186,7 +185,7 @@ public partial class ExcelService(ILogger<ExcelService> logger) : IExcelService
                 return direction;
         }
 
-        throw new ArgumentException($"Unknown wind direction: {input}");
+        throw new ArgumentException($"Неизвестное направление ветра: {input}");
     }
 
     private static string NormalizeInput(string input)
@@ -196,7 +195,6 @@ public partial class ExcelService(ILogger<ExcelService> logger) : IExcelService
                 .Where(part => !string.IsNullOrEmpty(part)));
     }
 
-
     private IWorkbook? OpenExcel(string filePath)
     {
         IWorkbook? book = null;
@@ -205,7 +203,6 @@ public partial class ExcelService(ILogger<ExcelService> logger) : IExcelService
             using var fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read);
             try
             {
-                // xslx
                 book = new XSSFWorkbook(fileStream, true);
             }
             catch
@@ -213,7 +210,6 @@ public partial class ExcelService(ILogger<ExcelService> logger) : IExcelService
                 book = null;
             }
 
-            // xls
             book ??= new HSSFWorkbook(fileStream);
             return book;
         }

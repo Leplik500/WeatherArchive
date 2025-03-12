@@ -1,6 +1,6 @@
 debugger
 let dataTable = $('#weatherTable').DataTable({
-    info: true,
+    info: false,
     serverSide: false,
     searching: false,
     paging: true,
@@ -27,6 +27,9 @@ let dataTable = $('#weatherTable').DataTable({
         {
             targets: 0,
             render: DataTable.render.datetime('dd.MM.yyyy HH:mm')
-        }
-    ]
+        },
+    ],
+    language: {
+        url: '//cdn.datatables.net/plug-ins/2.2.2/i18n/ru.json',
+    }
 })
