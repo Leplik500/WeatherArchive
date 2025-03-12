@@ -72,6 +72,14 @@ public class WeatherController(IExcelService excelService, IWeatherService weath
         return View();
     }
 
+    [HttpPost]
+    public async Task<IActionResult> GetIssues()
+    {
+        var response = await weatherService.GetAll();
+        return Json(new {data = response.Data});
+    }
+
+
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
     public IActionResult Error()
     {

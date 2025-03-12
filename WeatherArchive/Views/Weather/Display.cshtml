@@ -1,6 +1,29 @@
 @* @model TModel *@
 
 @{
-    ViewBag.Title = "title";
+    ViewBag.Title = "Upload Page";
     Layout = "_Layout";
+}
+
+<table id="weatherTable"
+       style="width: 100%">
+    <thead>
+    <tr>
+        <th>DateTime</th>
+        <th>Temperature</th>
+        <th>Humidity</th>
+        <th>DewPoint</th>
+        <th>Pressure</th>
+        <th>WindDirection</th>
+        <th>WindSpeed</th>
+        <th>CloudCover</th>
+        <th>CloudHeight</th>
+        <th>Visibility</th>
+        <th>WeatherPhenomenon</th>
+    </tr>
+    </thead>
+</table>
+
+@section Scripts {
+    <script src="~/js/display.js"></script>
 }

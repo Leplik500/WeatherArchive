@@ -7,6 +7,8 @@
     <title>@ViewData["Title"] - WeatherArchive</title>
     <link href="~/lib/bootstrap/dist/css/bootstrap.min.css"
           rel="stylesheet"/>
+    <link rel="stylesheet"
+          href="https://cdn.datatables.net/2.2.2/css/dataTables.dataTables.css"/>
     <link asp-append-version="true"
           href="~/css/site.css"
           rel="stylesheet"/>
@@ -16,7 +18,8 @@
 </head>
 <body>
 <header>
-    <nav class="bg-white border-bottom box-shadow mb-3 navbar navbar-expand-sm navbar-light navbar-toggleable-sm">
+    <nav
+        class="bg-white border-bottom box-shadow mb-3 navbar navbar-expand-sm navbar-light navbar-toggleable-sm">
         <div class="container-fluid">
             <a asp-action="Index"
                asp-area=""
@@ -33,7 +36,8 @@
                     type="button">
                 <span class="navbar-toggler-icon"></span>
             </button>
-            <div class="collapse d-sm-inline-flex justify-content-between navbar-collapse">
+            <div
+                class="collapse d-sm-inline-flex justify-content-between navbar-collapse">
                 <ul class="flex-grow-1 navbar-nav">
                     <li class="nav-item">
                         <a asp-action="Display"
@@ -70,8 +74,11 @@
 </footer>
 <script src="~/lib/jquery/dist/jquery.min.js"></script>
 <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.datatables.net/2.2.2/js/dataTables.js"></script>
+<script
+    src="https://cdn.jsdelivr.net/npm/luxon@3.5.0/build/global/luxon.min.js"></script>
 <script asp-append-version="true"
         src="~/js/site.js"></script>
-@await RenderSectionAsync("Scripts", required: false)
+@await RenderSectionAsync("Scripts", false)
 </body>
 </html>
