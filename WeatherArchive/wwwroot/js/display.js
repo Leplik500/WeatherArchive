@@ -1,21 +1,18 @@
 let selectedMonth = null;
+let selectedYear = null;
 
-$.fn.dataTable.ext.search.push(function (settings, data, dataIndex) {
-    if (settings.sTableId !== 'weatherTable') return true;
-
-    if (selectedMonth === null) return true;
-
+$.fn.dataTable.ext.search.push(function (settings, data) {
     let dateString = data[0];
-    if (!dateString) return false;
     let parts = dateString.split('.');
     if (parts.length !== 3) return false;
-    let day = parseInt(parts[0], 10);
     let month = parseInt(parts[1], 10) - 1;
     let year = parseInt(parts[2], 10);
-    let rowDate = new Date(year, month, day);
-    let match = rowDate.getMonth() === selectedMonth;
-    console.log("Row date:", rowDate, "Selected month:", selectedMonth, "Match:", match);
-    return match;
+
+    if (selectedMonth !== null && month !== selectedMonth) {
+        return false;
+    }
+    return !(selectedYear !== null && year !== selectedYear);
+
 });
 
 let dataTable = $('#weatherTable').DataTable({
@@ -71,6 +68,22 @@ new AirDatepicker('#monthsPicker', {
             selectedMonth = date.getMonth();
         } else {
             selectedMonth = null;
+        }
+
+        dataTable.draw();
+    }
+});
+
+new AirDatepicker('#yearsPicker', {
+    view: 'years',
+    minView: 'years',
+    dateFormat: 'yyyy',
+    startDate: '01.01.2010',
+    onSelect({date}) {
+        if (date) {
+            selectedYear = date.getFullYear();
+        } else {
+            selectedYear = null;
         }
 
         dataTable.draw();
