@@ -35,6 +35,7 @@ $("#uploadButton").on('click', function (event) {
         },
         error: function (response) {
             alert("Загрузка файлов провалилась: " + response.responseJSON.description)
+            $('#waitMessage').css('display', 'none')
             console.log(response)
         }
     })
