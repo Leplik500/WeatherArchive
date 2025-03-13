@@ -1,6 +1,38 @@
-﻿services:
+﻿networks:
+  weatherarchive-network:
+    driver: bridge
+
+services:
   weatherarchive:
-    image: weatherarchive
     build:
       context: .
       dockerfile: WeatherArchive/Dockerfile
+    image: weatherarchive
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:80
+    ports:
+      - "5279:80"
+    networks:
+      - weatherarchive-network
+    depends_on:
+      - postgres
+  
+  postgres:
+    image: postgres
+    ports:
+      - "5433:5433"
+    networks:
+      - weatherarchive-network
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_HOST_AUTH_METHOD=trust
+      - POSTGRES_PORT=5433
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=weather_archive
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:

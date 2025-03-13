@@ -18,7 +18,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\..\WeatherArchive.Domain\WeatherArchive.Domain\WeatherArchive.Domain.csproj"/>
+        <ProjectReference Include="..\WeatherArchive.Domain\WeatherArchive.Domain.csproj"/>
         <ProjectReference Include="..\WeatherArchive.DAL\WeatherArchive.DAL.csproj"/>
         <ProjectReference Include="..\WeatherArchive.Service\WeatherArchive.Service.csproj"/>
     </ItemGroup>

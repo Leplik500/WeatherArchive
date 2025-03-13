@@ -104,7 +104,8 @@ public class WeatherService(IBaseRepository<WeatherEntity> repository, ILogger<W
                     StatusCode = StatusCode.InternalServerError
                 };
 
-            weatherEntities.Add(response.Data);
+            if (response.Data != null)
+                weatherEntities.Add(response.Data);
         }
 
         return new BaseResponse<IEnumerable<WeatherEntity>>

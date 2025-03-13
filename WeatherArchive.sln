@@ -7,7 +7,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		compose.yaml = compose.yaml
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WeatherArchive.Domain", "..\WeatherArchive.Domain\WeatherArchive.Domain\WeatherArchive.Domain.csproj", "{6A670835-C70B-412C-8633-F3B5388D4FA7}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WeatherArchive.Domain", "WeatherArchive.Domain\WeatherArchive.Domain.csproj", "{6A670835-C70B-412C-8633-F3B5388D4FA7}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Domain", "Domain", "{0BEA3F01-AF8E-46AB-842A-18975AD992D9}"
 EndProject
