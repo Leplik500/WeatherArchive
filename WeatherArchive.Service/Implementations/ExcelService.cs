@@ -1,5 +1,6 @@
 using System.ComponentModel;
 using System.Globalization;
+using System.Text;
 using System.Text.RegularExpressions;
 using Microsoft.Extensions.Logging;
 using NPOI.HSSF.UserModel;
@@ -17,9 +18,13 @@ public partial class ExcelService(ILogger<ExcelService> logger) : IExcelService
 {
     public BaseResponse<IEnumerable<CreateWeatherViewModel>> ParseExcel(string filePath)
     {
+        var errors = new StringBuilder();
+        List<CreateWeatherViewModel> tempWeathers = [];
+        var hasErrors = false;
+
         try
         {
-            var book = OpenExcel(filePath);
+            using var book = OpenExcel(filePath);
             if (book == null)
                 return new BaseResponse<IEnumerable<CreateWeatherViewModel>>
                 {
@@ -27,7 +32,6 @@ public partial class ExcelService(ILogger<ExcelService> logger) : IExcelService
                     StatusCode = StatusCode.FileNotSupported
                 };
 
-            var weathers = new List<CreateWeatherViewModel>();
             for (var i = 0; i < book.NumberOfSheets; i++)
             {
                 var sheet = book.GetSheetAt(i);
@@ -37,80 +41,84 @@ public partial class ExcelService(ILogger<ExcelService> logger) : IExcelService
                     if (row == null)
                         continue;
 
-                    var entity = ParseRow(row);
-                    if (entity == null)
-                        throw new ArgumentException($"На листе {sheet.SheetName} в строке {row.RowNum} не заполнены все обязательные поля\nОбязательные поля: Дата, Время, Температура, Влажность, Точка росы, Давление");
-
-                    weathers.Add(entity);
+                    try
+                    {
+                        var entity = ParseRow(row);
+                        tempWeathers.Add(entity);
+                    }
+                    catch (Exception ex)
+                    {
+                        errors.AppendLine($"Лист {sheet.SheetName}, строка {row.RowNum}: {ex.Message}");
+                        hasErrors = true;
+                    }
                 }
             }
 
+            if (hasErrors)
+                return new BaseResponse<IEnumerable<CreateWeatherViewModel>>
+                {
+                    Description = errors.ToString(),
+                    StatusCode = StatusCode.InvalidData
+                };
+
             return new BaseResponse<IEnumerable<CreateWeatherViewModel>>
             {
-                Data = weathers,
+                Data = tempWeathers,
                 StatusCode = StatusCode.OK
             };
         }
-        catch (Exception e)
+        catch (Exception ex)
         {
-            logger.LogError("[ExcelService.ParseExcel] {Message}", e.Message);
+            logger.LogError("[ExcelService.ParseExcel] {Message}", ex.Message);
             return new BaseResponse<IEnumerable<CreateWeatherViewModel>>
             {
-                Description = e.Message,
+                Description = $"Критическая ошибка: {ex.Message}",
                 StatusCode = StatusCode.InternalServerError
             };
         }
     }
 
-    private CreateWeatherViewModel ParseRow(IRow row)
+    private static CreateWeatherViewModel ParseRow(IRow row)
     {
-        try
+        var date = row.GetCell(0).StringCellValue;
+        var time = row.GetCell(1).StringCellValue;
+        var dateTime = ParseDateTime(date, time);
+
+        var temperature = GetDoubleFromCell(row.GetCell(2), "Температура", -90, 60);
+        var humidity = GetDoubleFromCell(row.GetCell(3), "Влажность", 0, 101);
+        var dewPoint = GetDoubleFromCell(row.GetCell(4), "Точка росы", -60, 40);
+        var pressure = GetIntFromCell(row.GetCell(5), "Давление", 630, 820);
+
+        var windDirectionCell = row.GetCell(6);
+        var windDirection = ParseWindDirection(windDirectionCell.StringCellValue);
+
+        var cell = row.GetCell(7, MissingCellPolicy.CREATE_NULL_AS_BLANK);
+        var windSpeed = GetNullableIntFromCell(cell, "Скорость ветра", 0, 410);
+        cell = row.GetCell(8, MissingCellPolicy.CREATE_NULL_AS_BLANK);
+        var cloudCover = GetNullableIntFromCell(cell, "Облачность", 0, 100);
+        cell = row.GetCell(9, MissingCellPolicy.CREATE_NULL_AS_BLANK);
+        var cloudHeight = GetNullableIntFromCell(cell, "Нижняя граница облачности", 0, 3000);
+        cell = row.GetCell(10, MissingCellPolicy.CREATE_NULL_AS_BLANK);
+        var visibility = GetNullableIntFromCell(cell, "Видимость", 0, 200);
+
+        var weatherPhenomenon = row.GetCell(11, MissingCellPolicy.CREATE_NULL_AS_BLANK).StringCellValue;
+        if (!WeatherPhenomenonRegex().IsMatch(weatherPhenomenon) && !string.IsNullOrWhiteSpace(weatherPhenomenon))
+            throw new ArgumentException("Погодное явление указано неверно");
+
+        return new CreateWeatherViewModel
         {
-            var date = row.GetCell(0).StringCellValue;
-            var time = row.GetCell(1).StringCellValue;
-            var dateTime = ParseDateTime(date, time);
-
-            var temperature = GetDoubleFromCell(row.GetCell(2), "Температура", -90, 60);
-            var humidity = GetDoubleFromCell(row.GetCell(3), "Влажность", 0, 100);
-            var dewPoint = GetDoubleFromCell(row.GetCell(4), "Точка росы", -60, 40);
-            var pressure = GetIntFromCell(row.GetCell(5), "Давление", 630, 820);
-
-            var windDirectionCell = row.GetCell(6);
-            var windDirection = ParseWindDirection(windDirectionCell.StringCellValue);
-
-            var cell = row.GetCell(7, MissingCellPolicy.CREATE_NULL_AS_BLANK);
-            var windSpeed = GetNullableIntFromCell(cell, "Скорость ветра", 0, 410);
-            cell = row.GetCell(8, MissingCellPolicy.CREATE_NULL_AS_BLANK);
-            var cloudCover = GetNullableIntFromCell(cell, "Облачность", 0, 100);
-            cell = row.GetCell(9, MissingCellPolicy.CREATE_NULL_AS_BLANK);
-            var cloudHeight = GetNullableIntFromCell(cell, "Нижняя граница облачности", 0, 3000);
-            cell = row.GetCell(10, MissingCellPolicy.CREATE_NULL_AS_BLANK);
-            var visibility = GetNullableIntFromCell(cell, "Видимость", 0, 200);
-
-            var weatherPhenomenon = row.GetCell(11, MissingCellPolicy.CREATE_NULL_AS_BLANK).StringCellValue;
-            if (!WeatherPhenomenonRegex().IsMatch(weatherPhenomenon) && !string.IsNullOrWhiteSpace(weatherPhenomenon))
-                throw new ArgumentException("Погодное явление указано неверно");
-
-            return new CreateWeatherViewModel
-            {
-                Date = dateTime,
-                Temperature = temperature,
-                Humidity = humidity,
-                DewPoint = dewPoint,
-                Pressure = pressure,
-                WindDirection = windDirection,
-                WindSpeed = windSpeed,
-                CloudCover = cloudCover,
-                CloudHeight = cloudHeight,
-                Visibility = visibility,
-                WeatherPhenomenon = weatherPhenomenon
-            };
-        }
-        catch (Exception e)
-        {
-            logger.LogError("[ExcelService.ParseRow] строка {RowNum} на листе {SheetName}: {Сообщение}", row.RowNum, row.Sheet.SheetName, e.Message);
-            throw new ArgumentException($"[ExcelService.ParseRow] строка {row.RowNum} на листе {row.Sheet.SheetName}: {e.Message}");
-        }
+            Date = dateTime,
+            Temperature = temperature,
+            Humidity = humidity,
+            DewPoint = dewPoint,
+            Pressure = pressure,
+            WindDirection = windDirection,
+            WindSpeed = windSpeed,
+            CloudCover = cloudCover,
+            CloudHeight = cloudHeight,
+            Visibility = visibility,
+            WeatherPhenomenon = weatherPhenomenon
+        };
     }
 
     private static double GetDoubleFromCell(ICell cell, string name, int min, int max)
@@ -120,7 +128,7 @@ public partial class ExcelService(ILogger<ExcelService> logger) : IExcelService
 
         var value = cell.NumericCellValue;
         if (value > max || value < min)
-            throw new ArgumentException($"{name} вне допустимого диапазона [{min}; {max}]");
+            throw new ArgumentException($"{name} вне допустимого диапазона [{min}; {max}], значение {value}");
 
         return value;
     }
@@ -132,9 +140,9 @@ public partial class ExcelService(ILogger<ExcelService> logger) : IExcelService
 
         var value = cell.NumericCellValue;
         if (value > max || value < min)
-            throw new ArgumentException($"{name} вне допустимого диапазона [{min}; {max}]");
+            throw new ArgumentException($"{name} вне допустимого диапазона [{min}; {max}], значение {value}");
 
-        return (int)value;
+        return (int) value;
     }
 
     private static int? GetNullableIntFromCell(ICell cell, string name, int min, int max)
@@ -143,10 +151,10 @@ public partial class ExcelService(ILogger<ExcelService> logger) : IExcelService
         if (cell.CellType != CellType.Numeric)
             value = null;
         else
-            value = (int)cell.NumericCellValue;
+            value = (int) cell.NumericCellValue;
 
         if (value > max || value < min)
-            throw new ArgumentException($"{name} вне допустимого диапазона [{min}; {max}]");
+            throw new ArgumentException($"{name} вне допустимого диапазона [{min}; {max}], значение {value}");
 
         return value;
     }
@@ -156,7 +164,7 @@ public partial class ExcelService(ILogger<ExcelService> logger) : IExcelService
         var dateTimeConverter = new DateTimeConverter();
         var dateTimeString = date + " " + time;
         var culture = new CultureInfo("ru-RU");
-        var moscowTime = (DateTime)(dateTimeConverter.ConvertFrom(null, culture, dateTimeString) ??
+        var moscowTime = (DateTime) (dateTimeConverter.ConvertFrom(null, culture, dateTimeString) ??
                                      throw new ArgumentException("Дата и время указаны неверно"));
 
         var moscowZone = TimeZoneInfo.FindSystemTimeZoneById("Europe/Moscow");
@@ -220,7 +228,8 @@ public partial class ExcelService(ILogger<ExcelService> logger) : IExcelService
         }
     }
 
-    [GeneratedRegex(@"\b(?:град|позёмок|ливень|дождь|снег|дымка|морось|гроза|туман|небо|неба|радуга|северное сияние|облако|облака|облаков)\b",
+    [GeneratedRegex(
+            @"\b(?:град|позёмок|ливень|дождь|снег|дымка|морось|гроза|туман|небо|неба|радуга|северное сияние|облако|облака|облаков|иглы|крупа|иней|снегопад|изморозь|мороз|налёт|налет|гололед|гололёд|гололедица|пыль|буря|молния|гром|мгла|зарница|огни|радуга|гало|мираж|столб|заря|глория|шквал|вихрь|смерч|кристаллы|зёрна|зерна)\b",
             RegexOptions.IgnoreCase, "ru-RU")]
     private static partial Regex WeatherPhenomenonRegex();
 }

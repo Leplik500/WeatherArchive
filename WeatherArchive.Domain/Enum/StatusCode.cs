@@ -4,5 +4,6 @@ public enum StatusCode
 {
     OK = 200,
     InternalServerError = 500,
-    FileNotSupported = 415
+    FileNotSupported = 415,
+    InvalidData = 422
 }
