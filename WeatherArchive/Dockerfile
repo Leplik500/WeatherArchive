@@ -18,5 +18,6 @@ RUN dotnet publish "WeatherArchive.csproj" -c Release -o /app/publish /p:UseAppH
 
 FROM base AS final
 WORKDIR /app
+RUN mkdir -p /app/wwwroot/uploads
 COPY --from=publish /app/publish .
 ENTRYPOINT ["dotnet", "WeatherArchive.dll"]
