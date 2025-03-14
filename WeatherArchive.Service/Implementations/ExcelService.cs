@@ -11,6 +11,7 @@ using WeatherArchive.Domain.Extensions;
 using WeatherArchive.Domain.Response;
 using WeatherArchive.Domain.ViewModels.Weather;
 using WeatherArchive.Service.Interfaces;
+using Exception = System.Exception;
 
 namespace WeatherArchive.Service.Implementations;
 
@@ -19,8 +20,7 @@ public partial class ExcelService(ILogger<ExcelService> logger) : IExcelService
     public BaseResponse<IEnumerable<CreateWeatherViewModel>> ParseExcel(string filePath)
     {
         var errors = new StringBuilder();
-        List<CreateWeatherViewModel> tempWeathers = [];
-        var hasErrors = false;
+        List<CreateWeatherViewModel> weathers = [];
 
         try
         {
@@ -44,27 +44,26 @@ public partial class ExcelService(ILogger<ExcelService> logger) : IExcelService
                     try
                     {
                         var entity = ParseRow(row);
-                        tempWeathers.Add(entity);
+                        weathers.Add(entity);
                     }
                     catch (Exception ex)
                     {
                         errors.AppendLine($"Лист {sheet.SheetName}, строка {row.RowNum}: {ex.Message}");
-                        hasErrors = true;
                     }
                 }
             }
 
-            if (hasErrors)
-                return new BaseResponse<IEnumerable<CreateWeatherViewModel>>
-                {
-                    Description = errors.ToString(),
-                    StatusCode = StatusCode.InvalidData
-                };
-
-            return new BaseResponse<IEnumerable<CreateWeatherViewModel>>
+            return errors.Length switch
             {
-                Data = tempWeathers,
-                StatusCode = StatusCode.OK
+                > 0 when weathers.Count > 0 => new BaseResponse<IEnumerable<CreateWeatherViewModel>>
+                {
+                    Data = weathers, Description = errors.ToString(), StatusCode = StatusCode.PartialSuccess
+                },
+                > 0 when weathers.Count == 0 => new BaseResponse<IEnumerable<CreateWeatherViewModel>>
+                {
+                    Description = errors.ToString(), StatusCode = StatusCode.InvalidData
+                },
+                _ => new BaseResponse<IEnumerable<CreateWeatherViewModel>> {Data = weathers, StatusCode = StatusCode.OK}
             };
         }
         catch (Exception ex)

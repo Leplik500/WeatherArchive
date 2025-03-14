@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
+using WeatherArchive.Domain.Enum;
 using WeatherArchive.Domain.Response;
 using WeatherArchive.Domain.ViewModels.Weather;
 using WeatherArchive.Models;
@@ -27,7 +28,7 @@ public class WeatherController(IExcelService excelService, IWeatherService weath
                file.FileName.EndsWith("xlsx"))))
             return new BaseResponse<IEnumerable<CreateWeatherViewModel>>
             {
-                Description = "File not supported",
+                Description = "Файл не поддерживается",
                 StatusCode = Domain.Enum.StatusCode.FileNotSupported
             };
 
@@ -35,9 +36,17 @@ public class WeatherController(IExcelService excelService, IWeatherService weath
         await using var filestream = new FileStream(filepath, FileMode.Create);
         await file.CopyToAsync(filestream);
         var response = excelService.ParseExcel(filepath);
-        if (response.StatusCode == Domain.Enum.StatusCode.OK)
+        if (response.StatusCode is Domain.Enum.StatusCode.OK or Domain.Enum.StatusCode.PartialSuccess)
         {
-            await weatherService.CreateMultiple(response.Data);
+            if (response.Data != null)
+                await weatherService.CreateMultiple(response.Data);
+            else
+                return new BaseResponse<IEnumerable<CreateWeatherViewModel>>
+                {
+                    Description = "Произошла ошибка при обработке данных",
+                    StatusCode = Domain.Enum.StatusCode.InternalServerError
+                };
+
             System.IO.File.Delete(filepath);
             return response;
         }
@@ -50,20 +59,22 @@ public class WeatherController(IExcelService excelService, IWeatherService weath
     public async Task<IActionResult> MultipleUploadHandle(List<IFormFile> files)
     {
         List<string> resultDescriptions = [];
-        var isSuccesful = true;
+        List<StatusCode> statusCodes = [];
         foreach (var file in files)
         {
             var result = await UploadHandle(file);
-            if (result.StatusCode != Domain.Enum.StatusCode.OK)
-                isSuccesful = false;
-
-            resultDescriptions.Add($"{file.FileName}: {result.Description};\n");
+            statusCodes.Add(result.StatusCode);
+            if (result.Description != null)
+                resultDescriptions.Add($"{file.FileName}:\n{result.Description}\n");
         }
 
-        if (isSuccesful)
+        if (statusCodes.TrueForAll(code => code.Equals(Domain.Enum.StatusCode.OK)))
             return Ok(new {description = "Все файлы успешно загружены и разобраны"});
 
-        return BadRequest(new {description = resultDescriptions});
+        var hasPartial = statusCodes.Any(c => c is Domain.Enum.StatusCode.OK or Domain.Enum.StatusCode.PartialSuccess);
+        var status = hasPartial ? "PartialSuccess" : "CompleteFailure";
+
+        return BadRequest(new {description = resultDescriptions, status});
     }
 
 

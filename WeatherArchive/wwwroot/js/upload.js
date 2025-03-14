@@ -20,7 +20,7 @@ $("#uploadButton").on('click', function (event) {
         $('#errorMessage').css('display', 'block');
         return
     }
-    $('#waitMessage').css('display', 'block')
+    $('#waitMessage').css('display', 'block');
     let formData = new FormData($("#uploadForm")[0]);
     $.ajax({
         url: "/MultipleUploadHandle",
@@ -29,14 +29,21 @@ $("#uploadButton").on('click', function (event) {
         contentType: false,
         processData: false,
         success: function (response) {
-            alert("Файлы успешно загружены и разобраны");
-            $('#waitMessage').css('display', 'none')
-            console.log(response)
+            alert("Все файлы успешно загружены и разобраны");
+            $('#waitMessage').css('display', 'none');
+            console.log(response);
         },
         error: function (response) {
-            alert("Загрузка файлов провалилась: " + response.responseJSON.description)
-            $('#waitMessage').css('display', 'none')
-            console.log(response)
+            let json = response.responseJSON;
+            let message;
+            if (json.status === 'PartialSuccess') {
+                message = "Некоторые файлы загружены с ошибками:\n" + json.description.join('\n');
+            } else {
+                message = "Все файлы не загружены. Ошибки:\n" + json.description.join('\n');
+            }
+            alert(message);
+            $('#waitMessage').css('display', 'none');
+            console.log(response);
         }
     })
 })
