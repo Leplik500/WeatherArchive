@@ -1,0 +1,20 @@
+#errorMessage {
+    color: red;
+}
+
+#waitMessage {
+    color: blue;
+}
+
+#uploadForm {
+    position: relative;
+}
+
+.upload-message {
+    position: absolute;
+    bottom: -40px;
+    left: 0;
+    margin: 0;
+    padding: 8px 0;
+    display: none;
+}

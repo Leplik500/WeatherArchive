@@ -3,6 +3,7 @@
     Layout = "_Layout";
 }
 
+<link rel="stylesheet" href="css/upload.css"/>
 <form action="#"
       id="uploadForm"
       enctype="multipart/form-data"
@@ -13,13 +14,11 @@
            name="files"
            type="file"
            value="Choose excel files"/>
-    <p id="errorMessage"
-       style="color: red; display: none;">
+    <p id="errorMessage" class="upload-message">
         Неподдерживаемый формат файла.
         Пожалуйста, загрузите файл Excel в формате (.xls или .xlsx).
     </p>
-    <p id="waitMessage"
-       style="color: blue; display: none;">
+    <p id="waitMessage" class="upload-message">
         Пожалуйста, подождите, идет загрузка... А пока сделайте разминку
     </p>
     <button class="btn btn-outline-primary"
